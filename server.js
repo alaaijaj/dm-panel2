@@ -58,12 +58,52 @@ async function developerProfile(){
 async function guildChoices(){
   return client.guilds.cache.map(g=>({id:g.id,name:g.name,members:g.memberCount||0})).sort((a,b)=>a.name.localeCompare(b.name));
 }
+const guildDataCache = new Map();
+
 async function guildData(gid){
-  const guild=await client.guilds.fetch(gid);
-  const members=await guild.members.fetch();
-  const roles=guild.roles.cache.filter(r=>r.name!=='@everyone').sort((a,b)=>b.position-a.position).map(r=>({id:r.id,name:r.name,count:r.members.size}));
-  const users=members.filter(m=>!m.user.bot).map(m=>({id:m.id,label:`${m.user.username} (${m.user.id})`})).sort((a,b)=>a.label.localeCompare(b.label));
-  return {guild,roles,users};
+  const now = Date.now();
+  const cached = guildDataCache.get(gid);
+
+  if (cached && (now - cached.time) < 30000) {
+    return cached.data;
+  }
+
+  const guild = await client.guilds.fetch(gid);
+
+  let membersCollection;
+  try {
+    if (guild.members.cache && guild.members.cache.size > 0) {
+      membersCollection = guild.members.cache;
+    } else {
+      membersCollection = await guild.members.fetch();
+    }
+  } catch (err) {
+    membersCollection = guild.members.cache || new Map();
+  }
+
+  const members = [...membersCollection.values()];
+
+  const roles = guild.roles.cache
+    .filter(r => r.name !== '@everyone')
+    .sort((a, b) => b.position - a.position)
+    .map(r => ({
+      id: r.id,
+      name: r.name,
+      count: r.members.size
+    }));
+
+  const users = members
+    .filter(m => m && m.user && !m.user.bot)
+    .map(m => ({
+      id: m.id,
+      label: `${m.user.username} (${m.user.id})`
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const data = { guild, roles, users };
+  guildDataCache.set(gid, { time: now, data });
+
+  return data;
 }
 async function sendSafe({actorEmail,guildId,targetType,roleId,singleUserId,multipleUserIds,plainText,useEmbed,title,description,color,imageUrl,footer}){
   const settings=read(SETTINGS);
