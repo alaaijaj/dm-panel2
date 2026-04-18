@@ -34,7 +34,7 @@ function ensure(file, val) {
 }
 
 ensure(SETTINGS, {
-  appName: 'DM Control Safe',
+  appName: 'Syria Store',
   developerDiscordId: '',
   monthlyPrice: 9.99,
   currency: 'EUR',
