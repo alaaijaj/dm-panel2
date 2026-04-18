@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>إكمال الإعداد - <%= settings.appName %></title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body{background:#0b1020;color:#fff;font-family:Arial,sans-serif;padding:24px}
+    .wrap{max-width:900px;margin:auto}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:20px;margin-bottom:16px}
+    .ok{color:#36d399}.bad{color:#ff6b81}
+    .btn{display:inline-block;padding:12px 18px;border-radius:14px;text-decoration:none;background:linear-gradient(135deg,#6a7cff,#00d1ff);color:#fff;font-weight:700;border:none;cursor:pointer}
+    input{width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#10182d;color:#fff}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:700px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>إكمال الإعداد الإجباري</h1>
+    <p>حتى تكمل استخدام اللوحة، لازم يكون عندك اشتراك فعّال وتضيف البوت إلى سيرفرك وتتحقق من السيرفر.</p>
+
+    <% if (message) { %>
+      <div class="card"><%= message %></div>
+    <% } %>
+
+    <div class="grid">
+      <div class="card">
+        <h2>1) الاشتراك</h2>
+        <p>الحالة:
+          <% if (setup.subscriptionActive) { %>
+            <span class="ok">نشط</span>
+          <% } else { %>
+            <span class="bad">غير نشط</span>
+          <% } %>
+        </p>
+        <% if (stripeEnabled) { %>
+          <form action="/billing/checkout" method="POST">
+            <button class="btn" type="submit">ابدأ الاشتراك الآن</button>
+          </form>
+        <% } else { %>
+          <p class="bad">Stripe غير مضبوط بعد.</p>
+        <% } %>
+      </div>
+
+      <div class="card">
+        <h2>2) إضافة البوت إلى السيرفر</h2>
+        <p>الحالة:
+          <% if (setup.botInstalled) { %>
+            <span class="ok">تم التحقق</span>
+          <% } else { %>
+            <span class="bad">غير متحقق</span>
+          <% } %>
+        </p>
+        <a class="btn" href="<%= discordInstallUrl %>" target="_blank" rel="noopener">أضف البوت إلى سيرفرك</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3) تحقق من السيرفر</h2>
+      <p>بعد إضافة البوت، الصق Guild ID الخاص بسيرفرك هنا حتى نتحقق أن البوت بداخله.</p>
+      <form action="/setup/verify-guild" method="POST">
+        <input type="text" name="guildId" placeholder="Guild ID" required>
+        <div style="margin-top:12px">
+          <button class="btn" type="submit">تحقق الآن</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>الحالة النهائية</h2>
+      <p>الاشتراك:
+        <strong class="<%= setup.subscriptionActive ? 'ok' : 'bad' %>"><%= setup.subscriptionActive ? 'مفعل' : 'غير مفعل' %></strong>
+      </p>
+      <p>إضافة البوت:
+        <strong class="<%= setup.botInstalled ? 'ok' : 'bad' %>"><%= setup.botInstalled ? 'تمت' : 'غير مكتملة' %></strong>
+      </p>
+      <p>السيرفر المتحقق:
+        <strong><%= setup.verifiedGuildId || '-' %></strong>
+      </p>
+      <% if (setup.subscriptionActive && setup.botInstalled && setup.verifiedGuildId) { %>
+        <p class="ok">تم الإعداد بالكامل. يمكنك الآن العودة إلى اللوحة.</p>
+        <a class="btn" href="/">فتح اللوحة</a>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>
