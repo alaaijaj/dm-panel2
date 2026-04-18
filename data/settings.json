@@ -1,0 +1,13 @@
+{
+  "appName": "Iraq Store",
+  "siteDescription": "Announcement Control Panel",
+  "backgroundImageUrl": "",
+  "blurStrength": 14,
+  "defaultMentionType": "none",
+  "defaultAnnouncementChannelId": "",
+  "developerName": "Alaa Dev",
+  "developerUsername": "iraqstore.dev",
+  "developerAvatar": "/static/developer.svg",
+  "brandPrimary": "#ff2b2b",
+  "brandSecondary": "#ff8a00"
+}

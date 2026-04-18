@@ -4,13 +4,10 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title><%= settings.appName %></title>
-  <link rel="icon" href="/static/favicon.svg">
   <link rel="stylesheet" href="/static/style.css">
   <style>
     body::before{
-      background-image:
-        linear-gradient(rgba(9,13,24,.62), rgba(9,13,24,.78)),
-        url('<%= settings.backgroundImageUrl || "/static/default-bg.svg" %>');
+      background-image: linear-gradient(rgba(10,6,6,.70), rgba(10,6,6,.82)), url('<%= settings.backgroundImageUrl || "/static/default-bg.svg" %>');
       filter: blur(<%= settings.blurStrength || 14 %>px);
       transform: scale(1.06);
     }
@@ -20,22 +17,21 @@
   <div class="overlay"></div>
   <div class="layout">
     <aside class="sidebar glass">
-      <div class="brand vip-brand">
-        <img src="/static/logo.png" alt="logo"/>
+      <div class="brand">
+        <img src="/static/logo.svg" alt="logo"/>
         <div>
           <h1><%= settings.appName %></h1>
           <p><%= settings.siteDescription %></p>
         </div>
       </div>
 
-      <div class="profile-card vip-card">
+      <div class="profile-card">
         <div class="row-line"><strong>المستخدم:</strong> <span><%= currentUser.email %></span></div>
         <div class="row-line"><strong>الصلاحية:</strong> <span class="badge-role"><%= currentUser.role %></span></div>
         <div class="row-line"><strong>Discord ID:</strong> <span><%= currentUser.discordUserId || '-' %></span></div>
       </div>
 
-      <% if (developer) { %>
-      <div class="developer-card vip-card">
+      <div class="developer-card">
         <img src="<%= developer.avatar %>" alt="dev"/>
         <div>
           <div class="label">Developer</div>
@@ -43,24 +39,13 @@
           <div class="muted">@<%= developer.username %></div>
         </div>
       </div>
-      <% } %>
-
-      <div class="quick-mini glass">
-        <div class="mini-title">لوحة تحكم VIP</div>
-        <div class="mini-grid">
-          <div><span>المشتركين</span><strong><%= subscribersCount %></strong></div>
-          <div><span>المستخدمين</span><strong><%= users.length %></strong></div>
-        </div>
-      </div>
 
       <nav>
         <a href="#hero">الرئيسية</a>
-        <a href="#send">الإرسال</a>
-        <a href="#send-live">حالة الإرسال</a>
-        <a href="#panel-perms">رتب الإرسال</a>
-        <a href="#subs">المشتركين</a>
-        <a href="#users">مستخدمي اللوحة</a>
-        <a href="#settings">الإعدادات</a>
+        <a href="#announce">إرسال إعلان</a>
+        <a href="#permissions">صلاحيات الإعلانات</a>
+        <a href="#users">المستخدمون</a>
+        <% if (currentUser.role === 'owner') { %><a href="#settings">الإعدادات</a><% } %>
         <a href="#logs">السجل</a>
       </nav>
 
@@ -68,90 +53,35 @@
     </aside>
 
     <main class="content">
-      <% if (result && result.error) { %>
-        <div class="alert error"><%= result.error %></div>
-      <% } %>
-      <% if (result && !result.error) { %>
-        <div class="alert success">
-          تم الإرسال — المستهدف: <%= result.totalTargets %> | نجح: <%= result.sent %> | فشل: <%= result.failed %>
-        </div>
-      <% } %>
+      <% if (result && result.error) { %><div class="alert error"><%= result.error %></div><% } %>
+      <% if (result && result.success) { %><div class="alert success"><%= result.message %></div><% } %>
 
-      <section id="hero" class="glass hero vip-hero">
+      <section id="hero" class="glass hero">
         <div class="hero-left">
-          <div class="hero-badge">VIP CONTROL PANEL</div>
-          <h2>إدارة احترافية للبوت والإرسال والصلاحيات</h2>
-          <p>لوحة مطورة بواجهة أفضل، متابعة مباشرة لحالة الإرسال، وتحكم أسرع في المستخدمين والرتب والإعدادات.</p>
+          <div class="hero-badge">IRAQ STORE</div>
+          <h2>لوحة إعلانات احترافية وآمنة</h2>
+          <p>هذه النسخة مخصصة للإعلانات داخل السيرفر فقط. يمكنك الإرسال إلى روم إعلانات مع منشن آمن مثل @everyone أو @here أو رتبة محددة.</p>
           <div class="hero-actions">
-            <a href="#send" class="primary-btn hero-link">ابدأ الإرسال</a>
-            <a href="#settings" class="secondary-btn hero-link">الإعدادات</a>
-          </div>
-        </div>
-        <div class="hero-right">
-          <div class="stats-grid">
-            <div class="stat"><span>عدد المشتركين</span><strong><%= subscribersCount %></strong></div>
-            <div class="stat"><span>سعر الاشتراك</span><strong><%= settings.monthlyPrice %> <%= settings.currency %></strong></div>
-            <div class="stat"><span>مستخدمي اللوحة</span><strong><%= users.length %></strong></div>
-            <div class="stat"><span>الوضع الآمن</span><strong><%= settings.allowRoleMessagingOnly ? "مفعل" : "غير مفعل" %></strong></div>
+            <a href="#announce" class="primary-btn hero-link">إرسال إعلان</a>
           </div>
         </div>
       </section>
 
-      <section id="send-live" class="glass card">
+      <section id="announce" class="glass card">
         <div class="section-head">
           <div>
-            <h2>حالة الإرسال المباشرة</h2>
-            <p class="section-note">متابعة مباشرة للإرسال مع أزرار إيقاف مؤقت واستكمال.</p>
-          </div>
-          <div class="head-actions">
-            <button type="button" class="secondary-btn" onclick="pauseSend()">إيقاف مؤقت</button>
-            <button type="button" class="secondary-btn" onclick="resumeSend()">استكمال</button>
-            <button type="button" class="danger-btn" onclick="stopSend()">إيقاف كامل</button>
+            <h2>إرسال إعلان</h2>
+            <p class="section-note">إرسال إلى قناة إعلانات داخل السيرفر.</p>
           </div>
         </div>
 
-        <div class="status-board">
-          <div class="status-card">
-            <span>الحالة</span>
-            <strong id="statusState">جارٍ التحميل...</strong>
-          </div>
-          <div class="status-card">
-            <span>المعالج</span>
-            <strong id="statusProcessed">0 / 0</strong>
-          </div>
-          <div class="status-card">
-            <span>النجاح</span>
-            <strong id="statusSuccess">0</strong>
-          </div>
-          <div class="status-card">
-            <span>الفشل</span>
-            <strong id="statusFailed">0</strong>
-          </div>
-        </div>
-
-        <div class="status-errors">
-          <h3>أحدث أخطاء الإرسال</h3>
-          <div id="statusErrors" class="error-list">لا توجد أخطاء حالياً.</div>
-        </div>
-      </section>
-
-      <section id="send" class="glass card">
-        <div class="section-head">
-          <div>
-            <h2>إرسال آمن واحترافي</h2>
-            <p class="section-note">إرسال إلى عضو أو عدة أعضاء أو رتبة محددة مع Embed وصور وتذييل.</p>
-          </div>
-        </div>
-
-        <form action="/send" method="POST" enctype="multipart/form-data">
+        <form action="/announce" method="POST" enctype="multipart/form-data">
           <div class="grid">
             <label>
               <span>السيرفر</span>
               <select name="guildId" id="guildSelect" required>
                 <option value="">اختر السيرفر</option>
-                <% guilds.forEach(g => { %>
-                  <option value="<%= g.id %>"><%= g.name %> (<%= g.members %>)</option>
-                <% }) %>
+                <% guilds.forEach(g => { %><option value="<%= g.id %>"><%= g.name %> (<%= g.members %>)</option><% }) %>
               </select>
             </label>
 
@@ -161,27 +91,23 @@
             </label>
 
             <label>
-              <span>نوع الاستهداف</span>
-              <select name="targetType" id="targetType" required>
-                <option value="single">عضو واحد</option>
-                <option value="multiple">عدة أعضاء</option>
+              <span>قناة الإعلانات</span>
+              <select name="channelId" id="channelId" required></select>
+            </label>
+
+            <label>
+              <span>نوع المنشن</span>
+              <select name="mentionType" id="mentionType">
+                <option value="none">بدون منشن</option>
+                <option value="everyone">@everyone</option>
+                <option value="here">@here</option>
                 <option value="role">رتبة محددة</option>
               </select>
             </label>
 
-            <label id="singleWrap">
-              <span>عضو واحد</span>
-              <select name="singleUserId" id="singleUserId"></select>
-            </label>
-
-            <label id="multipleWrap" class="hidden">
-              <span>عدة أعضاء</span>
-              <select name="multipleUserIds" id="multipleUserIds" multiple size="8"></select>
-            </label>
-
-            <label id="roleWrap" class="hidden">
-              <span>الرتبة</span>
-              <select name="roleId" id="roleId"></select>
+            <label id="mentionRoleWrap" class="hidden">
+              <span>الرتبة للمنشن</span>
+              <select name="mentionRoleId" id="mentionRoleId"></select>
             </label>
 
             <label class="toggle">
@@ -190,33 +116,33 @@
             </label>
 
             <label>
-              <span>عنوان الرسالة</span>
-              <input type="text" name="title" placeholder="عنوان الرسالة">
+              <span>عنوان الإعلان</span>
+              <input type="text" name="title">
             </label>
 
             <label class="full">
               <span>الوصف</span>
-              <textarea name="description" rows="5" placeholder="اكتب وصف الرسالة هنا"></textarea>
+              <textarea name="description" rows="5"></textarea>
             </label>
 
             <label class="full">
-              <span>نص عادي إضافي</span>
-              <textarea name="plainText" rows="3" placeholder="نص إضافي خارج الـ Embed"></textarea>
+              <span>نص إضافي</span>
+              <textarea name="plainText" rows="3"></textarea>
             </label>
 
             <label>
               <span>لون الرسالة</span>
-              <input type="color" name="color" value="#5865F2">
+              <input type="color" name="color" value="#ff2b2b">
             </label>
 
             <label>
-              <span>تذييل</span>
-              <input type="text" name="footer" placeholder="نص التذييل">
+              <span>التذييل</span>
+              <input type="text" name="footer">
             </label>
 
             <label>
               <span>رابط صورة</span>
-              <input type="url" name="imageUrl" placeholder="https://...">
+              <input type="url" name="imageUrl">
             </label>
 
             <label>
@@ -226,85 +152,60 @@
           </div>
 
           <div class="send-tips">
-            <div class="tip">الإرسال الذكي يستخدم Queue لتقليل الـ Rate Limit.</div>
-            <div class="tip">إذا لم تظهر الأعضاء، اختر السيرفر وانتظر ثانية واحدة.</div>
-            <div class="tip">الأفضل الاستهداف برتبة أو عدة أعضاء، وليس عددًا كبيرًا دفعة واحدة.</div>
+            <div class="tip">الإعلانات داخل القنوات أفضل من الرسائل الخاصة الجماعية.</div>
+            <div class="tip">يمكنك استخدام @everyone أو @here أو رتبة محددة فقط عند الحاجة.</div>
           </div>
 
-          <button class="primary-btn">إرسال الآن</button>
+          <button class="primary-btn" type="submit">إرسال الإعلان</button>
         </form>
       </section>
 
-      <section id="panel-perms" class="glass card">
-        <div class="section-head">
-          <div>
-            <h2>رتبة الإرسال لكل سيرفر</h2>
-            <p class="section-note">المستخدم داخل اللوحة لا يرسل إلا إذا كان لديه Discord User ID وعنده الرتبة المحددة في ذلك السيرفر.</p>
-          </div>
-        </div>
-
+      <section id="permissions" class="glass card">
+        <h2>صلاحيات الإعلانات</h2>
         <form action="/panel-perms/save" method="POST">
           <div class="grid">
             <label>
               <span>السيرفر</span>
               <select name="guildId" id="permGuildSelect" required>
                 <option value="">اختر السيرفر</option>
-                <% guilds.forEach(g => { %>
-                  <option value="<%= g.id %>"><%= g.name %></option>
-                <% }) %>
+                <% guilds.forEach(g => { %><option value="<%= g.id %>"><%= g.name %></option><% }) %>
               </select>
             </label>
 
             <label>
-              <span>الرتبة المسموح لها بالإرسال</span>
+              <span>الرتبة المسموح لها بالإعلانات</span>
               <select name="roleId" id="permRoleSelect" required></select>
             </label>
           </div>
-
-          <button class="primary-btn" type="submit">حفظ الرتبة</button>
+          <button class="primary-btn" type="submit">حفظ</button>
         </form>
-
-        <div class="table" style="margin-top:16px;">
-          <div class="thead"><span>السيرفر</span><span>Role ID</span><span>الحالة</span><span>ملاحظة</span></div>
-          <% guilds.forEach(g => { %>
-            <div class="trow">
-              <span><%= g.name %></span>
-              <span><%= panelPerms && panelPerms[g.id] ? panelPerms[g.id] : '-' %></span>
-              <span><%= panelPerms && panelPerms[g.id] ? 'محدد' : 'غير محدد' %></span>
-              <span>إذا لم يتم التحديد فالمسموح فقط هو الأونر</span>
-            </div>
-          <% }) %>
-        </div>
       </section>
 
-      <section id="subs" class="glass card">
-        <div class="section-head">
-          <div>
-            <h2>إدارة المشتركين</h2>
-            <p class="section-note">إضافة وتفعيل وإيقاف المشتركين.</p>
-          </div>
-        </div>
-
+      <section id="users" class="glass card">
+        <h2>مستخدمي اللوحة</h2>
         <% if (currentUser.role === 'owner') { %>
-        <form action="/subscribers/add" method="POST" class="inline-form">
-          <input type="text" name="name" placeholder="الاسم" required>
-          <input type="email" name="email" placeholder="الإيميل" required>
-          <button class="secondary-btn">إضافة مشترك</button>
+        <form action="/users/add" method="POST" class="inline-form">
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="text" name="password" placeholder="Password" required>
+          <input type="text" name="discordUserId" placeholder="Discord User ID" required>
+          <select name="role"><option value="admin">admin</option></select>
+          <button class="secondary-btn">إضافة مستخدم</button>
         </form>
         <% } %>
 
         <div class="table">
-          <div class="thead"><span>الاسم</span><span>الإيميل</span><span>الحالة</span><span>الإجراء</span></div>
-          <% subscribers.forEach(s => { %>
+          <div class="thead"><span>الإيميل</span><span>الدور</span><span>Discord ID</span><span>الحالة</span></div>
+          <% users.forEach(u => { %>
             <div class="trow">
-              <span><%= s.name || '-' %></span>
-              <span><%= s.email %></span>
-              <span><%= s.active ? 'مفعل' : 'موقوف' %></span>
+              <span><%= u.email %></span>
+              <span><%= u.role %></span>
+              <span><%= u.discordUserId || '-' %></span>
               <span>
-                <% if (currentUser.role === 'owner') { %>
-                <form action="/subscribers/toggle/<%= s.id %>" method="POST">
-                  <button class="mini-btn"><%= s.active ? 'إيقاف' : 'تفعيل' %></button>
-                </form>
+                <%= u.isActive ? 'مفعل' : 'موقوف' %>
+                <% if (currentUser.role === 'owner' && u.role !== 'owner') { %>
+                  <form action="/users/toggle/<%= u.id %>" method="POST" style="display:inline-block;margin-right:8px;">
+                    <button class="mini-btn"><%= u.isActive ? 'إيقاف' : 'تفعيل' %></button>
+                  </form>
                 <% } %>
               </span>
             </div>
@@ -312,72 +213,30 @@
         </div>
       </section>
 
-      <section id="users" class="glass card">
-        <div class="section-head">
-          <div>
-            <h2>مستخدمي اللوحة</h2>
-            <p class="section-note">ربط كل مستخدم بـ Discord User ID حتى يمكن التحقق من رتبته داخل السيرفر.</p>
-          </div>
-        </div>
-
-        <% if (currentUser.role === 'owner') { %>
-        <form action="/users/add" method="POST" class="inline-form">
-          <input type="email" name="email" placeholder="Email" required>
-          <input type="text" name="password" placeholder="Password" required>
-          <input type="text" name="discordUserId" placeholder="Discord User ID" required>
-          <select name="role">
-            <option value="admin">admin</option>
-          </select>
-          <button class="secondary-btn">إضافة مستخدم لوحة</button>
-        </form>
-        <% } %>
-
-        <div class="table">
-          <div class="thead"><span>الإيميل</span><span>الدور</span><span>Discord ID</span><span>الحالة</span></div>
-          <% users.forEach(u => { %>
-            <div class="trow" style="grid-template-columns:1fr 120px 1fr 120px;">
-              <span><%= u.email %></span>
-              <span><%= u.role %></span>
-              <span><%= u.discordUserId || '-' %></span>
-              <span><%= u.isActive ? 'مفعل' : 'موقوف' %></span>
-            </div>
-          <% }) %>
-        </div>
-      </section>
-
       <% if (currentUser.role === 'owner') { %>
       <section id="settings" class="glass card">
-        <div class="section-head">
-          <div>
-            <h2>إعدادات اللوحة</h2>
-            <p class="section-note">اسم الموقع، الخلفية، الديفلوبر، سعر الاشتراك، والعملات.</p>
-          </div>
-        </div>
-
+        <h2>إعدادات Iraq Store</h2>
         <form action="/settings" method="POST">
           <div class="grid">
-            <label><span>اسم الموقع</span><input type="text" name="appName" value="<%= settings.appName %>"></label>
             <label><span>وصف الموقع</span><input type="text" name="siteDescription" value="<%= settings.siteDescription %>"></label>
-            <label><span>سعر الاشتراك الشهري</span><input type="number" step="0.01" name="monthlyPrice" value="<%= settings.monthlyPrice %>"></label>
-            <label><span>العملة</span><input type="text" name="currency" value="<%= settings.currency %>"></label>
-            <label class="full"><span>رابط الخلفية</span><input type="url" name="backgroundImageUrl" value="<%= settings.backgroundImageUrl %>"></label>
             <label><span>قوة البلور</span><input type="number" name="blurStrength" value="<%= settings.blurStrength %>" min="0" max="40"></label>
-            <label><span>Discord ID للديفلوبر</span><input type="text" name="developerDiscordId" value="<%= settings.developerDiscordId %>"></label>
-            <label class="toggle"><input type="checkbox" name="allowRoleMessagingOnly" <%= settings.allowRoleMessagingOnly ? "checked" : "" %>><span>تفعيل الوضع الآمن</span></label>
+            <label><span>نوع المنشن الافتراضي</span>
+              <select name="defaultMentionType">
+                <option value="none" <%= settings.defaultMentionType === 'none' ? 'selected' : '' %>>بدون منشن</option>
+                <option value="everyone" <%= settings.defaultMentionType === 'everyone' ? 'selected' : '' %>>@everyone</option>
+                <option value="here" <%= settings.defaultMentionType === 'here' ? 'selected' : '' %>>@here</option>
+              </select>
+            </label>
+            <label><span>قناة الإعلانات الافتراضية</span><input type="text" name="defaultAnnouncementChannelId" value="<%= settings.defaultAnnouncementChannelId || '' %>"></label>
+            <label class="full"><span>رابط الخلفية</span><input type="url" name="backgroundImageUrl" value="<%= settings.backgroundImageUrl %>"></label>
           </div>
-          <button class="primary-btn">حفظ الإعدادات</button>
+          <button class="primary-btn" type="submit">حفظ</button>
         </form>
       </section>
       <% } %>
 
       <section id="logs" class="glass card">
-        <div class="section-head">
-          <div>
-            <h2>سجل الاستخدام</h2>
-            <p class="section-note">آخر العمليات التي تمت داخل اللوحة.</p>
-          </div>
-        </div>
-
+        <h2>سجل الإعلانات</h2>
         <div class="table">
           <div class="thead logs-head"><span>الوقت</span><span>النوع</span><span>من</span><span>التفاصيل</span></div>
           <% logs.forEach(log => { %>
@@ -396,52 +255,40 @@
 <script>
 const guildSelect = document.getElementById('guildSelect');
 const guildNamePreview = document.getElementById('guildNamePreview');
-const targetType = document.getElementById('targetType');
-const singleWrap = document.getElementById('singleWrap');
-const multipleWrap = document.getElementById('multipleWrap');
-const roleWrap = document.getElementById('roleWrap');
-const singleUserId = document.getElementById('singleUserId');
-const multipleUserIds = document.getElementById('multipleUserIds');
-const roleId = document.getElementById('roleId');
+const channelId = document.getElementById('channelId');
+const mentionType = document.getElementById('mentionType');
+const mentionRoleWrap = document.getElementById('mentionRoleWrap');
+const mentionRoleId = document.getElementById('mentionRoleId');
 const permGuildSelect = document.getElementById('permGuildSelect');
 const permRoleSelect = document.getElementById('permRoleSelect');
 const savedPerms = <%- JSON.stringify(panelPerms || {}) %>;
 
-function toggleTargetFields(){
-  const v = targetType.value;
-  singleWrap.classList.toggle('hidden', v !== 'single');
-  multipleWrap.classList.toggle('hidden', v !== 'multiple');
-  roleWrap.classList.toggle('hidden', v !== 'role');
+function toggleMentionRole() {
+  mentionRoleWrap.classList.toggle('hidden', mentionType.value !== 'role');
 }
 
-async function loadGuildDataIntoSend(){
+async function loadGuildDataIntoAnnounce(){
   if(!guildSelect.value) return;
   const res = await fetch('/guild-data/' + guildSelect.value);
   const data = await res.json();
   if(!data.ok) return;
 
   guildNamePreview.value = data.guildName || '';
-  singleUserId.innerHTML = '';
-  multipleUserIds.innerHTML = '';
-  roleId.innerHTML = '';
+  channelId.innerHTML = '';
+  mentionRoleId.innerHTML = '';
 
-  data.users.forEach(user => {
-    const a = document.createElement('option');
-    a.value = user.id;
-    a.textContent = user.label;
-    singleUserId.appendChild(a);
-
-    const b = document.createElement('option');
-    b.value = user.id;
-    b.textContent = user.label;
-    multipleUserIds.appendChild(b);
+  data.channels.forEach(channel => {
+    const ch = document.createElement('option');
+    ch.value = channel.id;
+    ch.textContent = `#${channel.name}`;
+    channelId.appendChild(ch);
   });
 
   data.roles.forEach(role => {
-    const c = document.createElement('option');
-    c.value = role.id;
-    c.textContent = `${role.name} (${role.count})`;
-    roleId.appendChild(c);
+    const r = document.createElement('option');
+    r.value = role.id;
+    r.textContent = `${role.name} (${role.count})`;
+    mentionRoleId.appendChild(r);
   });
 }
 
@@ -456,65 +303,15 @@ async function loadGuildRolesIntoPerms(){
     const o = document.createElement('option');
     o.value = role.id;
     o.textContent = `${role.name} (${role.count})`;
-    if (savedPerms[permGuildSelect.value] && savedPerms[permGuildSelect.value] === role.id) {
-      o.selected = true;
-    }
+    if (savedPerms[permGuildSelect.value] === role.id) o.selected = true;
     permRoleSelect.appendChild(o);
   });
 }
 
-async function refreshSendStatus() {
-  try {
-    const res = await fetch('/send-status');
-    const data = await res.json();
-
-    const state = data.isRunning ? (data.isPaused ? 'متوقف مؤقتًا' : 'جارٍ الإرسال') : 'متوقف';
-    document.getElementById('statusState').textContent = state;
-    document.getElementById('statusProcessed').textContent = `${data.processed} / ${data.total}`;
-    document.getElementById('statusSuccess').textContent = data.success;
-    document.getElementById('statusFailed').textContent = data.failed;
-
-    const errorsBox = document.getElementById('statusErrors');
-    if (data.errors && data.errors.length) {
-      errorsBox.innerHTML = data.errors.slice(0, 8).map(e =>
-        `<div class="error-item"><strong>${e.tag}</strong><span>${e.error}</span></div>`
-      ).join('');
-    } else {
-      errorsBox.innerHTML = 'لا توجد أخطاء حالياً.';
-    }
-  } catch (e) {
-    document.getElementById('statusState').textContent = 'تعذر الجلب';
-  }
-}
-
-async function pauseSend() {
-  await fetch('/send-pause', { method:'POST' });
-  refreshSendStatus();
-}
-
-async function resumeSend() {
-  await fetch('/send-resume', { method:'POST' });
-  refreshSendStatus();
-}
-
-async function stopSend() {
-  await fetch('/send-stop', { method:'POST' });
-  refreshSendStatus();
-}
-
-targetType.addEventListener('change', toggleTargetFields);
-
-let loadTimeout;
-guildSelect.addEventListener('change', () => {
-  clearTimeout(loadTimeout);
-  loadTimeout = setTimeout(loadGuildDataIntoSend, 700);
-});
-
+mentionType.addEventListener('change', toggleMentionRole);
+guildSelect.addEventListener('change', loadGuildDataIntoAnnounce);
 permGuildSelect.addEventListener('change', loadGuildRolesIntoPerms);
-
-toggleTargetFields();
-refreshSendStatus();
-setInterval(refreshSendStatus, 3000);
+toggleMentionRole();
 </script>
 </body>
 </html>
