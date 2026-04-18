@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#ff2b2b"/><stop offset="1" stop-color="#ff7a00"/></linearGradient></defs>
+<rect width="100%" height="100%" rx="86" fill="#111"/>
+<circle cx="256" cy="200" r="118" fill="url(#g)" opacity="0.95"/>
+<path d="M256 82 C210 160, 330 175, 260 295 C240 265,180 235,206 165 C220 124,245 102,256 82 Z" fill="#fff2e8"/>
+<text x="256" y="426" font-size="56" text-anchor="middle" fill="#ffffff" font-family="Arial" font-weight="700">IRAQ STORE</text>
+</svg>

@@ -1,0 +1,49 @@
+:root{
+  --line:rgba(255,255,255,.10);--text:#edf2ff;--muted:#aab8d6;--accent:#ff2b2b;--accent2:#ff7a00;--card:rgba(20,13,13,.62);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh;position:relative;background:#0d0a0a}
+body::before{content:'';position:fixed;inset:-30px;background-size:cover;background-position:center;z-index:0}
+.overlay{position:fixed;inset:0;background:radial-gradient(circle at top right, rgba(255,43,43,.18), transparent 35%),radial-gradient(circle at bottom left, rgba(255,122,0,.12), transparent 30%),rgba(6,8,16,.48);z-index:1}
+.glass{background:var(--card);border:1px solid var(--line);box-shadow:0 18px 45px rgba(0,0,0,.28);backdrop-filter: blur(18px);-webkit-backdrop-filter: blur(18px)}
+.layout{position:relative;z-index:2;display:flex;min-height:100vh}
+.sidebar{width:320px;padding:22px;position:sticky;top:0;height:100vh;border-left:1px solid var(--line)}
+.brand{display:flex;gap:14px;align-items:center;margin-bottom:16px}.brand img{width:58px;height:58px;border-radius:18px;object-fit:cover}
+.brand h1{margin:0;font-size:24px}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.profile-card,.developer-card{border:1px solid var(--line);border-radius:20px;padding:14px;margin:14px 0;background:rgba(255,255,255,.04)}
+.row-line{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
+.badge-role{background:rgba(255,43,43,.12);border:1px solid rgba(255,43,43,.20);color:#ffe6e6;padding:3px 10px;border-radius:999px}
+.developer-card{display:flex;gap:12px;align-items:center}.developer-card img{width:54px;height:54px;border-radius:50%;object-fit:cover}
+.developer-card .label{font-size:12px;color:var(--muted)} .developer-card .name{font-size:16px;font-weight:700}
+nav{display:grid;gap:10px;margin-top:16px}
+nav a,.logout{text-decoration:none;color:var(--text);padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+nav a:hover,.logout:hover{background:rgba(255,255,255,.08)} .logout{display:block;text-align:center;margin-top:18px}
+.content{flex:1;padding:26px}.hero,.card{border-radius:26px;padding:22px;margin-bottom:20px}
+.hero-badge{display:inline-flex;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12px;letter-spacing:1px;margin-bottom:12px}
+.hero h2{margin:0 0 10px;font-size:34px;line-height:1.25}.hero p{margin:0;color:var(--muted);line-height:1.9}
+.hero-actions{display:flex;gap:10px;margin-top:18px}.hero-link{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.section-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:16px}.section-note{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+label{display:flex;flex-direction:column;gap:8px} label span{font-size:14px}
+input,select,textarea,button{border:none;outline:none;border-radius:14px;padding:14px;font-size:15px}
+input,select,textarea{background:rgba(9,14,28,.74);color:var(--text);border:1px solid var(--line)} textarea{resize:vertical}
+.primary-btn,.secondary-btn,.mini-btn{cursor:pointer;color:white;font-weight:700}
+.primary-btn{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.secondary-btn{background:linear-gradient(135deg,#d64b24,#ff7a00)}
+.mini-btn{background:rgba(255,255,255,.08);padding:8px 12px}.full{grid-column:1/-1}
+.inline-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.table{display:grid;gap:8px}.thead,.trow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.logs-head,.logs-row{grid-template-columns:180px 150px 220px 1fr}
+.alert{border-radius:16px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--line)} .success{background:rgba(31,199,123,.12)} .error{background:rgba(255,100,124,.12)}
+.toggle{flex-direction:row;align-items:center;gap:10px;margin-top:28px}.hidden{display:none}
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;position:relative;overflow:hidden}
+.login-card{width:min(470px,100%);padding:34px 28px 26px;border-radius:30px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:linear-gradient(180deg, rgba(40,18,18,.70), rgba(20,12,12,.75));box-shadow:0 24px 70px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);z-index:3}
+.brand-wrap{text-align:center;margin-bottom:18px}.top-badge{display:inline-flex;align-items:center;gap:8px;margin:0 auto 16px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.brand-logo{width:124px;max-width:100%;display:block;margin:0 auto 16px;border-radius:20px}.brand-title{margin:0;font-size:32px;font-weight:900;line-height:1.1;color:#fff}.brand-desc{margin:10px 0 0;color:var(--muted);font-size:14px;line-height:1.8}
+.developer-box{margin:22px 0 20px;padding:14px 16px;border-radius:22px;background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:13px}
+.developer-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,43,43,.32)}
+.developer-meta{min-width:0;display:flex;flex-direction:column}.developer-label{font-size:11px;color:#ffb1a8;text-transform:uppercase;letter-spacing:1.6px;font-weight:800;margin-bottom:4px}
+.developer-name{font-size:17px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.developer-user{font-size:13px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field{margin-bottom:12px}.field label{display:block;margin-bottom:7px;font-size:13px;color:#dbe7ff;font-weight:700}.full-btn{width:100%;height:54px;margin-top:6px}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}.thead,.trow,.logs-head,.logs-row{grid-template-columns:1fr}}
+@media (max-width:900px){.layout{display:block}.sidebar{width:100%;height:auto;position:relative}.content{padding:16px}}

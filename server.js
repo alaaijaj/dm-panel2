@@ -41,9 +41,9 @@ ensure(SETTINGS, {
   blurStrength: 14,
   defaultMentionType: 'none',
   defaultAnnouncementChannelId: '',
-  developerName: 'Alaa Dev',
-  developerUsername: 'iraqstore.dev',
-  developerAvatar: '/static/developer.svg',
+  fallbackDeveloperName: 'Alaa Dev',
+  fallbackDeveloperUsername: 'iraqstore.dev',
+  fallbackDeveloperAvatar: '/static/developer.svg',
   brandPrimary: '#ff2b2b',
   brandSecondary: '#ff8a00'
 });
@@ -102,14 +102,35 @@ function owner(req, res, next) {
   next();
 }
 
-function fixedDeveloperProfile() {
-  const s = read(SETTINGS);
-  return {
-    displayName: s.developerName || 'Alaa Dev',
-    username: s.developerUsername || 'iraqstore.dev',
-    avatar: s.developerAvatar || '/static/developer.svg'
-  };
+function logoPath() {
+  const png = path.join(__dirname, 'public', 'logo.png');
+  return fs.existsSync(png) ? '/static/logo.png' : '/static/logo.svg';
 }
+
+async function developerProfile() {
+  const s = read(SETTINGS);
+  const fallback = {
+    displayName: s.fallbackDeveloperName || 'Alaa Dev',
+    username: s.fallbackDeveloperUsername || 'iraqstore.dev',
+    avatar: s.fallbackDeveloperAvatar || '/static/developer.svg'
+  };
+
+  const developerId = clean(process.env.DEVELOPER_DISCORD_ID);
+  if (!developerId) return fallback;
+
+  try {
+    const user = await client.users.fetch(developerId, { force: true });
+    return {
+      displayName: user.globalName || user.displayName || user.username || fallback.displayName,
+      username: user.username || fallback.username,
+      avatar: user.displayAvatarURL({ extension: 'png', size: 512 }) || fallback.avatar
+    };
+  } catch (err) {
+    return fallback;
+  }
+}
+
+app.locals.logoPath = logoPath;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -215,15 +236,15 @@ function buildAnnouncementPayload(body) {
   };
 }
 
-app.get('/login', (req, res) => {
+app.get('/login', async (req, res) => {
   res.render('login', {
     error: null,
     settings: read(SETTINGS),
-    developer: fixedDeveloperProfile()
+    developer: await developerProfile()
   });
 });
 
-app.post('/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }), (req, res) => {
+app.post('/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }), async (req, res) => {
   const email = clean(req.body.email).toLowerCase();
   const password = clean(req.body.password);
 
@@ -237,7 +258,7 @@ app.post('/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }), (req, res) 
     return res.render('login', {
       error: 'بيانات الدخول غير صحيحة.',
       settings: read(SETTINGS),
-      developer: fixedDeveloperProfile()
+      developer: await developerProfile()
     });
   }
 
@@ -259,7 +280,7 @@ app.get('/', auth, ownerOrAdmin, async (req, res) => {
     guilds: await guildChoices(),
     logs: read(LOGS).slice(0, 40),
     users: read(USERS),
-    developer: fixedDeveloperProfile(),
+    developer: await developerProfile(),
     panelPerms: read(PANEL_PERMS),
     result: null
   });
@@ -291,7 +312,7 @@ app.post('/announce', auth, ownerOrAdmin, upload.single('image'), async (req, re
       guilds: await guildChoices(),
       logs: read(LOGS).slice(0, 40),
       users: read(USERS),
-      developer: fixedDeveloperProfile(),
+      developer: await developerProfile(),
       panelPerms: read(PANEL_PERMS),
       result: { error: 'ليس لديك صلاحية الإعلانات في هذا السيرفر.' }
     });
@@ -325,7 +346,7 @@ app.post('/announce', auth, ownerOrAdmin, upload.single('image'), async (req, re
       guilds: await guildChoices(),
       logs: read(LOGS).slice(0, 40),
       users: read(USERS),
-      developer: fixedDeveloperProfile(),
+      developer: await developerProfile(),
       panelPerms: read(PANEL_PERMS),
       result: { success: true, message: 'تم إرسال الإعلان بنجاح.' }
     });
@@ -336,7 +357,7 @@ app.post('/announce', auth, ownerOrAdmin, upload.single('image'), async (req, re
       guilds: await guildChoices(),
       logs: read(LOGS).slice(0, 40),
       users: read(USERS),
-      developer: fixedDeveloperProfile(),
+      developer: await developerProfile(),
       panelPerms: read(PANEL_PERMS),
       result: { error: err.message }
     });

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= settings.appName %></title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body::before{
+      background-image: linear-gradient(rgba(10,6,6,.70), rgba(10,6,6,.82)), url('<%= settings.backgroundImageUrl || "/static/default-bg.svg" %>');
+      filter: blur(<%= settings.blurStrength || 14 %>px);
+      transform: scale(1.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="layout">
+    <aside class="sidebar glass">
+      <div class="brand">
+        <img src="<%= logoPath() %>" alt="logo"/>
+        <div>
+          <h1><%= settings.appName %></h1>
+          <p><%= settings.siteDescription %></p>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <div class="row-line"><strong>المستخدم:</strong> <span><%= currentUser.email %></span></div>
+        <div class="row-line"><strong>الصلاحية:</strong> <span class="badge-role"><%= currentUser.role %></span></div>
+        <div class="row-line"><strong>Discord ID:</strong> <span><%= currentUser.discordUserId || '-' %></span></div>
+      </div>
+
+      <div class="developer-card">
+        <img src="<%= developer.avatar %>" alt="dev"/>
+        <div>
+          <div class="label">Developer</div>
+          <div class="name"><%= developer.displayName %></div>
+          <div class="muted">@<%= developer.username %></div>
+        </div>
+      </div>
+
+      <nav>
+        <a href="#hero">الرئيسية</a>
+        <a href="#announce">إرسال إعلان</a>
+        <a href="#permissions">صلاحيات الإعلانات</a>
+        <a href="#users">المستخدمون</a>
+        <% if (currentUser.role === 'owner') { %><a href="#settings">الإعدادات</a><% } %>
+        <a href="#logs">السجل</a>
+      </nav>
+
+      <a class="logout" href="/logout">تسجيل الخروج</a>
+    </aside>
+
+    <main class="content">
+      <% if (result && result.error) { %><div class="alert error"><%= result.error %></div><% } %>
+      <% if (result && result.success) { %><div class="alert success"><%= result.message %></div><% } %>
+
+      <section id="hero" class="glass hero">
+        <div class="hero-left">
+          <div class="hero-badge">IRAQ STORE</div>
+          <h2>لوحة إعلانات احترافية وآمنة</h2>
+          <p>اللوجو يدعم <strong>logo.png</strong> تلقائيًا إذا رفعته داخل public، والديفلوبر يُسحب من Discord عبر <strong>DEVELOPER_DISCORD_ID</strong>.</p>
+          <div class="hero-actions">
+            <a href="#announce" class="primary-btn hero-link">إرسال إعلان</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="announce" class="glass card">
+        <div class="section-head">
+          <div>
+            <h2>إرسال إعلان</h2>
+            <p class="section-note">إرسال إلى قناة إعلانات داخل السيرفر.</p>
+          </div>
+        </div>
+
+        <form action="/announce" method="POST" enctype="multipart/form-data">
+          <div class="grid">
+            <label>
+              <span>السيرفر</span>
+              <select name="guildId" id="guildSelect" required>
+                <option value="">اختر السيرفر</option>
+                <% guilds.forEach(g => { %><option value="<%= g.id %>"><%= g.name %> (<%= g.members %>)</option><% }) %>
+              </select>
+            </label>
+
+            <label>
+              <span>اسم السيرفر</span>
+              <input type="text" id="guildNamePreview" readonly placeholder="يظهر تلقائيًا"/>
+            </label>
+
+            <label>
+              <span>قناة الإعلانات</span>
+              <select name="channelId" id="channelId" required></select>
+            </label>
+
+            <label>
+              <span>نوع المنشن</span>
+              <select name="mentionType" id="mentionType">
+                <option value="none">بدون منشن</option>
+                <option value="everyone">@everyone</option>
+                <option value="here">@here</option>
+                <option value="role">رتبة محددة</option>
+              </select>
+            </label>
+
+            <label id="mentionRoleWrap" class="hidden">
+              <span>الرتبة للمنشن</span>
+              <select name="mentionRoleId" id="mentionRoleId"></select>
+            </label>
+
+            <label class="toggle">
+              <input type="checkbox" name="useEmbed" checked>
+              <span>استخدام Embed</span>
+            </label>
+
+            <label>
+              <span>عنوان الإعلان</span>
+              <input type="text" name="title">
+            </label>
+
+            <label class="full">
+              <span>الوصف</span>
+              <textarea name="description" rows="5"></textarea>
+            </label>
+
+            <label class="full">
+              <span>نص إضافي</span>
+              <textarea name="plainText" rows="3"></textarea>
+            </label>
+
+            <label>
+              <span>لون الرسالة</span>
+              <input type="color" name="color" value="#ff2b2b">
+            </label>
+
+            <label>
+              <span>التذييل</span>
+              <input type="text" name="footer">
+            </label>
+
+            <label>
+              <span>رابط صورة</span>
+              <input type="url" name="imageUrl">
+            </label>
+
+            <label>
+              <span>أو ارفع صورة</span>
+              <input type="file" name="image" accept="image/*">
+            </label>
+          </div>
+
+          <button class="primary-btn" type="submit">إرسال الإعلان</button>
+        </form>
+      </section>
+
+      <section id="permissions" class="glass card">
+        <h2>صلاحيات الإعلانات</h2>
+        <form action="/panel-perms/save" method="POST">
+          <div class="grid">
+            <label>
+              <span>السيرفر</span>
+              <select name="guildId" id="permGuildSelect" required>
+                <option value="">اختر السيرفر</option>
+                <% guilds.forEach(g => { %><option value="<%= g.id %>"><%= g.name %></option><% }) %>
+              </select>
+            </label>
+
+            <label>
+              <span>الرتبة المسموح لها بالإعلانات</span>
+              <select name="roleId" id="permRoleSelect" required></select>
+            </label>
+          </div>
+          <button class="primary-btn" type="submit">حفظ</button>
+        </form>
+      </section>
+
+      <section id="users" class="glass card">
+        <h2>مستخدمي اللوحة</h2>
+        <% if (currentUser.role === 'owner') { %>
+        <form action="/users/add" method="POST" class="inline-form">
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="text" name="password" placeholder="Password" required>
+          <input type="text" name="discordUserId" placeholder="Discord User ID" required>
+          <select name="role"><option value="admin">admin</option></select>
+          <button class="secondary-btn">إضافة مستخدم</button>
+        </form>
+        <% } %>
+
+        <div class="table">
+          <div class="thead"><span>الإيميل</span><span>الدور</span><span>Discord ID</span><span>الحالة</span></div>
+          <% users.forEach(u => { %>
+            <div class="trow">
+              <span><%= u.email %></span>
+              <span><%= u.role %></span>
+              <span><%= u.discordUserId || '-' %></span>
+              <span>
+                <%= u.isActive ? 'مفعل' : 'موقوف' %>
+                <% if (currentUser.role === 'owner' && u.role !== 'owner') { %>
+                  <form action="/users/toggle/<%= u.id %>" method="POST" style="display:inline-block;margin-right:8px;">
+                    <button class="mini-btn"><%= u.isActive ? 'إيقاف' : 'تفعيل' %></button>
+                  </form>
+                <% } %>
+              </span>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+
+      <% if (currentUser.role === 'owner') { %>
+      <section id="settings" class="glass card">
+        <h2>إعدادات Iraq Store</h2>
+        <form action="/settings" method="POST">
+          <div class="grid">
+            <label><span>وصف الموقع</span><input type="text" name="siteDescription" value="<%= settings.siteDescription %>"></label>
+            <label><span>قوة البلور</span><input type="number" name="blurStrength" value="<%= settings.blurStrength %>" min="0" max="40"></label>
+            <label><span>نوع المنشن الافتراضي</span>
+              <select name="defaultMentionType">
+                <option value="none" <%= settings.defaultMentionType === 'none' ? 'selected' : '' %>>بدون منشن</option>
+                <option value="everyone" <%= settings.defaultMentionType === 'everyone' ? 'selected' : '' %>>@everyone</option>
+                <option value="here" <%= settings.defaultMentionType === 'here' ? 'selected' : '' %>>@here</option>
+              </select>
+            </label>
+            <label><span>قناة الإعلانات الافتراضية</span><input type="text" name="defaultAnnouncementChannelId" value="<%= settings.defaultAnnouncementChannelId || '' %>"></label>
+            <label class="full"><span>رابط الخلفية</span><input type="url" name="backgroundImageUrl" value="<%= settings.backgroundImageUrl %>"></label>
+          </div>
+          <button class="primary-btn" type="submit">حفظ</button>
+        </form>
+      </section>
+      <% } %>
+
+      <section id="logs" class="glass card">
+        <h2>سجل الإعلانات</h2>
+        <div class="table">
+          <div class="thead logs-head"><span>الوقت</span><span>النوع</span><span>من</span><span>التفاصيل</span></div>
+          <% logs.forEach(log => { %>
+            <div class="trow logs-row">
+              <span><%= new Date(log.time).toLocaleString('de-DE') %></span>
+              <span><%= log.type %></span>
+              <span><%= log.actorEmail || '-' %></span>
+              <span><%= log.message || log.plainTextPreview || '-' %></span>
+            </div>
+          <% }) %>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+const guildSelect = document.getElementById('guildSelect');
+const guildNamePreview = document.getElementById('guildNamePreview');
+const channelId = document.getElementById('channelId');
+const mentionType = document.getElementById('mentionType');
+const mentionRoleWrap = document.getElementById('mentionRoleWrap');
+const mentionRoleId = document.getElementById('mentionRoleId');
+const permGuildSelect = document.getElementById('permGuildSelect');
+const permRoleSelect = document.getElementById('permRoleSelect');
+const savedPerms = <%- JSON.stringify(panelPerms || {}) %>;
+
+function toggleMentionRole() {
+  mentionRoleWrap.classList.toggle('hidden', mentionType.value !== 'role');
+}
+
+async function loadGuildDataIntoAnnounce(){
+  if(!guildSelect.value) return;
+  const res = await fetch('/guild-data/' + guildSelect.value);
+  const data = await res.json();
+  if(!data.ok) return;
+
+  guildNamePreview.value = data.guildName || '';
+  channelId.innerHTML = '';
+  mentionRoleId.innerHTML = '';
+
+  data.channels.forEach(channel => {
+    const ch = document.createElement('option');
+    ch.value = channel.id;
+    ch.textContent = `#${channel.name}`;
+    channelId.appendChild(ch);
+  });
+
+  data.roles.forEach(role => {
+    const r = document.createElement('option');
+    r.value = role.id;
+    r.textContent = `${role.name} (${role.count})`;
+    mentionRoleId.appendChild(r);
+  });
+}
+
+async function loadGuildRolesIntoPerms(){
+  if(!permGuildSelect.value) return;
+  const res = await fetch('/guild-data/' + permGuildSelect.value);
+  const data = await res.json();
+  if(!data.ok) return;
+
+  permRoleSelect.innerHTML = '';
+  data.roles.forEach(role => {
+    const o = document.createElement('option');
+    o.value = role.id;
+    o.textContent = `${role.name} (${role.count})`;
+    if (savedPerms[permGuildSelect.value] === role.id) o.selected = true;
+    permRoleSelect.appendChild(o);
+  });
+}
+
+mentionType.addEventListener('change', toggleMentionRole);
+guildSelect.addEventListener('change', loadGuildDataIntoAnnounce);
+permGuildSelect.addEventListener('change', loadGuildRolesIntoPerms);
+toggleMentionRole();
+</script>
+</body>
+</html>
